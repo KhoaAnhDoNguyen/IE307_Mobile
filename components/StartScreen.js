@@ -1,66 +1,53 @@
-// components/StartScreen.tsx
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View, FlatList, Button, TouchableOpacity } from 'react-native';
-import { useEffect, useState } from 'react';
-import { supabase } from '../supabaseClient'; // Import Supabase client
-import { useNavigation } from '@react-navigation/native'; // Hook để điều hướng
+import React from 'react';
+import { StatusBar } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, Image } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { Dimensions } from 'react-native';
+
+const { width, height } = Dimensions.get('window');
 
 export default function StartScreen() {
-  const [users, setUsers] = useState([]); // State để lưu thông tin user
-  const navigation = useNavigation(); // Khởi tạo hook điều hướng
-
-  useEffect(() => {
-    // Hàm để lấy dữ liệu từ bảng Users trong Supabase
-    const fetchUsers = async () => {
-      const { data, error } = await supabase
-        .from('users') // Tên bảng Users
-        .select('*'); // Lấy tất cả các cột
-
-      if (error) {
-        console.error('Error fetching users:', error);
-      } else {
-        setUsers(data); // Lưu dữ liệu user vào state
-      }
-    };
-
-    fetchUsers(); // Gọi hàm để lấy dữ liệu ngay khi component được render
-  }, []);
+  const navigation = useNavigation();
 
   return (
     <View style={styles.container}>
-      <Text style={styles.header}>Danh sách Users:</Text>
-
-      {/* Hiển thị danh sách users */}
-      <FlatList
-        data={users}
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={({ item }) => (
-          <View style={styles.userItem}>
-            <Text>ID: {item.id}</Text>
-            <Text>Name: {item.name}</Text>
-            <Text>Email: {item.email}</Text>
-            <Text>Phone: {item.phonenumber}</Text>
-          </View>
-        )}
+      <StatusBar
+        barStyle="light-content"
+        backgroundColor="#000"
       />
 
-      {/* Nút điều hướng đến màn hình SignIn */}
+      <Image
+        source={require('../assets/Logo/Logo.png')}
+        style={styles.logo}
+      />
+
+      <Image
+        source={require('../assets/Logo/Start_Film.png')}
+        style={styles.start_film}
+      />
+
+      <Text style={styles.start_text}>
+        <Text style={styles.text_1}>MBooking hello!{'\n'}</Text>
+        <Text style={styles.text_2}>Enjoy your favorite movies</Text>
+      </Text>
+
       <TouchableOpacity
-        style={styles.button}
+        style={styles.button_login}
         onPress={() => navigation.navigate('SignIn')}
       >
-        <Text style={styles.buttonText}>Log In</Text>
+        <Text style={styles.button_login_Text}>Sign In</Text>
       </TouchableOpacity>
 
-      {/* Nút điều hướng đến màn hình SignUp */}
       <TouchableOpacity
-        style={styles.button}
+        style={styles.button_signup}
         onPress={() => navigation.navigate('SignUp')}
       >
-        <Text style={styles.buttonText}>Sign Up</Text>
+        <Text style={styles.button_signup_Text}>Sign Up</Text>
       </TouchableOpacity>
 
-      <StatusBar style="auto" />
+      <Text style={styles.term}>
+        By signing in or signing up, you agree to our Terms of Service {'\n'}and Privacy Policy
+      </Text>
     </View>
   );
 }
@@ -68,33 +55,75 @@ export default function StartScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
+    backgroundColor: '#000',
     justifyContent: 'center',
-    padding: 20,
+    alignItems: 'center',
+    padding: 1,
   },
-  header: {
-    marginTop: 30,
-    fontSize: 20,
+  logo: {
+    position: 'absolute',
+    top: height * 0.1,
+    left: 15,
+  },
+  start_film: {
+    marginLeft: 33,
+    width: 310,
+    height: 310,
+    borderRadius: 10,
+    position: 'absolute',
+    top: height * 0.2,
+  },
+  start_text: {
+    color: 'white',
+    marginTop: height * 0.4,
+    textAlign: 'center',
+    lineHeight: 23,
+    marginBottom: 40,
+    marginTop: 400
+  },
+  text_1: {
+    fontSize: 24,
     fontWeight: 'bold',
-    marginBottom: 10,
   },
-  userItem: {
-    padding: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: '#ccc',
-    width: '100%',
+  text_2: {
+    fontSize: 13,
+    fontWeight: 'normal',
   },
-  button: {
+  button_login: {
     marginTop: 20,
-    padding: 15,
-    backgroundColor: '#007BFF',
-    borderRadius: 5,
-    width: '100%',
+    paddingVertical: 16,
+    paddingHorizontal: 40,
+    backgroundColor: '#FCC434',
+    borderRadius: 25,
+    width: '80%',
     alignItems: 'center',
   },
-  buttonText: {
-    color: '#fff',
+  button_login_Text: {
+    color: '#000000',
     fontSize: 16,
+  },
+  button_signup: {
+    marginTop: 20,
+    paddingVertical: 16,
+    paddingHorizontal: 40,
+    backgroundColor: '#000',
+    borderColor: '#ffffff',
+    borderWidth: 2,
+    borderRadius: 25,
+    width: '80%',
+    alignItems: 'center',
+  },
+  button_signup_Text: {
+    color: '#ffffff',
+    fontSize: 16,
+  },
+  term: {
+    position: 'absolute',
+    bottom: 30, // Cách đáy màn hình 20px
+    justifyContent: 'center',
+    alignItems: 'center',
+    color: 'white',
+    fontSize: 8,
+    textAlign: 'center',
   },
 });
