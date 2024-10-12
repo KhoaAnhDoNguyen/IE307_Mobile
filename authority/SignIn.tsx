@@ -8,12 +8,15 @@ import {
   StatusBar, 
   TouchableWithoutFeedback, 
   Keyboard, 
+  ScrollView,
   Alert 
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { supabase } from '../supabaseClient'; // Import client Supabase
+
+
 
 interface NavigationProp {
   navigate: (screen: string) => void;
@@ -27,6 +30,7 @@ const SignIn: React.FC = () => {
   const [isFocusedEmail, setIsFocusedEmail] = useState<boolean>(false);
   const [isFocusedPassword, setIsFocusedPassword] = useState<boolean>(false);
 
+  
   const handleEmailChange = useCallback((text: string) => {
     setEmail(text);
   }, []);
@@ -36,6 +40,11 @@ const SignIn: React.FC = () => {
   }, []);
 
   const handleLogin = async () => {
+    if (!email || !password) {
+      Alert.alert('Error', 'Please enter email and password.');
+      return;
+    }
+  
     try {
       const { data, error } = await supabase
         .from('users')
@@ -54,82 +63,84 @@ const SignIn: React.FC = () => {
       Alert.alert('Error', 'Something went wrong. Please try again.');
     }
   };
+  
 
   return (
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-      <View style={styles.container}>
-        <StatusBar barStyle="light-content" backgroundColor="#000" />
+    <ScrollView contentContainerStyle={styles.scrollContainer}>
+      <StatusBar barStyle="light-content" backgroundColor="#000" />
 
-        {/* Mũi tên quay lại */}
-        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-          <Icon name="arrow-back" size={30} color="#fff" />
-        </TouchableOpacity>
+      {/* Mũi tên quay lại */}
+      <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+        <Icon name="arrow-back" size={30} color="#fff" />
+      </TouchableOpacity>
 
-        <Text style={styles.title}>Sign In</Text>
+      <Text style={styles.title}>Sign In</Text>
 
-        <View style={styles.inputContainer}>
-          <TextInput
-            style={[styles.input]}
-            placeholder="Email"
-            placeholderTextColor={isFocusedEmail ? '#FCC434' : '#ccc'}
-            value={email}
-            onChangeText={handleEmailChange}
-            onFocus={() => setIsFocusedEmail(true)}
-            onBlur={() => setIsFocusedEmail(false)}
-            keyboardType="email-address"
-          />
-          <View style={[styles.underline, { backgroundColor: isFocusedEmail ? '#FCC434' : '#fff' }]} />
+      <View style={styles.inputContainer}>
+        <TextInput
+          style={[styles.input]}
+          placeholder="Email"
+          placeholderTextColor={isFocusedEmail ? '#FCC434' : '#ccc'}
+          value={email}
+          onChangeText={handleEmailChange}
+          onFocus={() => setIsFocusedEmail(true)}
+          onBlur={() => setIsFocusedEmail(false)}
+          keyboardType="email-address"
+        />
+        <View style={[styles.underline, { backgroundColor: isFocusedEmail ? '#FCC434' : '#fff' }]} />
 
-          <TextInput
-            style={styles.input}
-            placeholder="Password"
-            placeholderTextColor={isFocusedPassword ? '#FCC434' : '#ccc'}
-            value={password}
-            onChangeText={handlePasswordChange}
-            onFocus={() => setIsFocusedPassword(true)}
-            onBlur={() => setIsFocusedPassword(false)}
-            secureTextEntry
-          />
-          <View style={[styles.underline, { backgroundColor: isFocusedPassword ? '#FCC434' : '#fff' }]} />
-        </View>
+        <TextInput
+          style={styles.input}
+          placeholder="Password"
+          placeholderTextColor={isFocusedPassword ? '#FCC434' : '#ccc'}
+          value={password}
+          onChangeText={handlePasswordChange}
+          onFocus={() => setIsFocusedPassword(true)}
+          onBlur={() => setIsFocusedPassword(false)}
+          secureTextEntry
+        />
+        <View style={[styles.underline, { backgroundColor: isFocusedPassword ? '#FCC434' : '#fff' }]} />
+      </View>
 
+      {/* Chuyển nút Log In vào một View khác */}
+      <View style={styles.buttonContainer}>
         <TouchableOpacity style={styles.button_login} onPress={handleLogin}>
           <Text style={styles.button_login_Text}>Log In</Text>
         </TouchableOpacity>
-
-        {/* Thanh phân cách và nút Login with Google */}
-        <View style={styles.separatorContainer}>
-          <View style={styles.separator} />
-          <Text style={styles.separatorText}>Or continue with</Text>
-          <View style={styles.separator} />
-        </View>
-
-        <TouchableOpacity style={styles.button_google} onPress={() => {/* Xử lý đăng nhập bằng Google */}}>
-          <FontAwesome name="google" size={20} color="#fff" />
-          <Text style={styles.button_google_Text}> Google</Text>
-        </TouchableOpacity>
       </View>
-    </TouchableWithoutFeedback>
+
+      {/* Thanh phân cách và nút Login with Google */}
+      <View style={styles.separatorContainer}>
+        <View style={styles.separator} />
+        <Text style={styles.separatorText}>Or continue with</Text>
+        <View style={styles.separator} />
+      </View>
+
+      <TouchableOpacity style={styles.button_google} onPress={() => {/* Xử lý đăng nhập bằng Google */}}>
+        <FontAwesome name="google" size={20} color="#fff" />
+        <Text style={styles.button_google_Text}> Google</Text>
+      </TouchableOpacity>
+    </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#000',
+  scrollContainer: {
+    flexGrow: 1,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
+    backgroundColor: '#000',
   },
   title: {
     color: 'white',
     fontSize: 32,
     fontWeight: 'bold',
-    marginBottom: 50,
+    marginBottom: 70,
     textAlign: 'center',
   },
   inputContainer: {
-    marginBottom: 250,
+    marginBottom: 100, // Giảm khoảng cách dưới input
     width: '100%',
     alignItems: 'center',
   },
@@ -145,17 +156,21 @@ const styles = StyleSheet.create({
     height: 2,
     width: '95%',
     backgroundColor: '#fff',
-    marginBottom: 30,
+    marginBottom: 20,
+  },
+  buttonContainer: {
+    width: '100%',
+    alignItems: 'center',
+    marginBottom: 20, // Giảm khoảng cách dưới button
   },
   button_login: {
-    position: 'absolute',
-    bottom: 350,
     paddingVertical: 16,
     paddingHorizontal: 40,
     backgroundColor: '#FCC434',
     borderRadius: 25,
     width: '100%',
     alignItems: 'center',
+    marginBottom: 70
   },
   button_login_Text: {
     color: '#000',
@@ -163,13 +178,11 @@ const styles = StyleSheet.create({
   },
   backButton: {
     position: 'absolute',
-    top: 85,
+    top: 15,
     left: 20,
     zIndex: 1,
   },
   separatorContainer: {
-    position: 'absolute',
-    bottom: 180,
     flexDirection: 'row',
     alignItems: 'center',
     marginVertical: 15,
@@ -186,8 +199,6 @@ const styles = StyleSheet.create({
     fontSize: 13,
   },
   button_google: {
-    position: 'absolute',
-    bottom: 120,
     marginTop: 10,
     paddingVertical: 16,
     paddingHorizontal: 40,
@@ -203,5 +214,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
 });
+
 
 export default SignIn;

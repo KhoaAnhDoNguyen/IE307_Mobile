@@ -18,7 +18,8 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.anhkhoa2k3.IE307_FinalProject"
     },
     "web": {
       "favicon": "./assets/favicon.png"

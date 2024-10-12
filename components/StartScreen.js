@@ -78,7 +78,7 @@ const styles = StyleSheet.create({
     marginTop: height * 0.4,
     textAlign: 'center',
     lineHeight: 23,
-    marginBottom: 40,
+    marginBottom: 20,
     marginTop: 400
   },
   text_1: {

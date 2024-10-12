@@ -63,15 +63,19 @@ const SignUp: React.FC = () => {
         return;
       }
 
-      else
-      {
-        const { data, error } = await supabase
+      // Thực hiện thêm người dùng mới
+      const { data, error } = await supabase
         .from('users')
         .insert([{ name, email, phonenumber: phoneNumber, password }]);
-        navigation.navigate('HomePage');
 
-
+      if (error) {
+        Alert.alert('Error', error.message);
+        return;
       }
+
+      // Điều hướng đến trang HomePage sau khi đăng ký thành công
+      Alert.alert('Success', 'Sign up successful!');
+      navigation.navigate('HomePage');
 
     } catch (error) {
       Alert.alert('Error', 'Something went wrong. Please try again.');
@@ -222,7 +226,7 @@ const styles = StyleSheet.create({
   },
   backButton: {
     position: 'absolute',
-    top: 70,
+    top: 15,
     left: 20,
     zIndex: 1,
   },
