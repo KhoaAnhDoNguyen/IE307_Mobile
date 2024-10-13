@@ -1,20 +1,21 @@
-// authority/SignUp.tsx
 import React, { useState, useCallback } from 'react';
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  TextInput, 
-  TouchableOpacity, 
-  StatusBar, 
-  TouchableWithoutFeedback, 
-  Keyboard, 
-  Alert 
+import {
+  View,
+  Text,
+  StyleSheet,
+  TextInput,
+  TouchableOpacity,
+  StatusBar,
+  TouchableWithoutFeedback,
+  Keyboard,
+  Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { supabase } from '../supabaseClient'; // Import client Supabase
+import AsyncStorage from '@react-native-async-storage/async-storage'; // Import AsyncStorage
 
 interface NavigationProp {
   navigate: (screen: string) => void;
@@ -27,64 +28,90 @@ const SignUp: React.FC = () => {
   const [email, setEmail] = useState<string>('');
   const [phoneNumber, setPhoneNumber] = useState<string>('');
   const [password, setPassword] = useState<string>('');
+  const [loading, setLoading] = useState<boolean>(false);
 
   const handleNameChange = useCallback((text: string) => {
     setName(text);
   }, []);
-  
+
   const handleEmailChange = useCallback((text: string) => {
     setEmail(text);
   }, []);
-  
+
   const handlePhoneNumberChange = useCallback((text: string) => {
     setPhoneNumber(text);
   }, []);
-  
+
   const handlePasswordChange = useCallback((text: string) => {
     setPassword(text);
   }, []);
 
+  const validateEmail = (email: string) => {
+    const emailRegex = /\S+@\S+\.\S+/;
+    return emailRegex.test(email);
+  };
+
+  const validatePassword = (password: string) => {
+    return password.length >= 6;
+  };
+
   const handleSignUp = async () => {
+    if (!validateEmail(email)) {
+      Alert.alert('Error', 'Please enter a valid email address.');
+      return;
+    }
+
+    if (!validatePassword(password)) {
+      Alert.alert('Error', 'Password must be at least 6 characters long.');
+      return;
+    }
+
     try {
-      // Kiểm tra xem email đã tồn tại
+      setLoading(true);
       const { data: existingUsers, error: fetchError } = await supabase
         .from('users')
         .select('email')
         .eq('email', email);
-  
+
       if (fetchError) {
         Alert.alert('Error', fetchError.message);
         return;
       }
-  
-      // Nếu email đã tồn tại, hiện thông báo
+
       if (existingUsers.length > 0) {
         Alert.alert('Error', 'This email already exists. Please use another email!');
         return;
       }
 
-      // Thực hiện thêm người dùng mới
       const { data, error } = await supabase
         .from('users')
-        .insert([{ name, email, phonenumber: phoneNumber, password }]);
+        .insert([{ name, email, phonenumber: phoneNumber, password }])
+        .select(); // Select the inserted data to get the user's information
 
       if (error) {
         Alert.alert('Error', error.message);
         return;
       }
 
-      // Điều hướng đến trang HomePage sau khi đăng ký thành công
-      Alert.alert('Success', 'Sign up successful!');
-      navigation.navigate('HomePage');
+      if (data && data.length > 0) {
+        const user = data[0];
 
+        // Save user information in AsyncStorage
+        await AsyncStorage.setItem('user', JSON.stringify(user));
+
+        Alert.alert('Success', 'Sign up successful!');
+        navigation.navigate('HomePage');
+      }
     } catch (error) {
       Alert.alert('Error', 'Something went wrong. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
-  
 
   const handleGoogleSignUp = async () => {
     try {
+      setLoading(true);
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
       });
@@ -96,6 +123,8 @@ const SignUp: React.FC = () => {
       }
     } catch (error) {
       Alert.alert('Error', 'Something went wrong. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -104,7 +133,6 @@ const SignUp: React.FC = () => {
       <View style={styles.container}>
         <StatusBar barStyle="light-content" backgroundColor="#000" />
         
-        {/* Mũi tên quay lại */}
         <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
           <Icon name="arrow-back" size={30} color="#fff" />
         </TouchableOpacity>
@@ -148,20 +176,31 @@ const SignUp: React.FC = () => {
           />
         </View>
 
-        <TouchableOpacity style={styles.button_signup} onPress={handleSignUp}>
-          <Text style={styles.button_signup_Text}>Sign Up</Text>
+        <TouchableOpacity 
+          style={styles.button_signup} 
+          onPress={handleSignUp}
+          disabled={loading}
+        >
+          {loading ? (
+            <ActivityIndicator color="#000" />
+          ) : (
+            <Text style={styles.button_signup_Text}>Sign Up</Text>
+          )}
         </TouchableOpacity>
 
-        {/* Thanh phân cách và nút đăng ký với Google */}
         <View style={styles.separatorContainer}>
           <View style={styles.separator} />
           <Text style={styles.separatorText}>Or continue with</Text>
           <View style={styles.separator} />
         </View>
 
-        <TouchableOpacity style={styles.button_google} onPress={handleGoogleSignUp}>
+        <TouchableOpacity 
+          style={styles.button_google} 
+          onPress={handleGoogleSignUp}
+          disabled={loading}
+        >
           <FontAwesome name="google" size={20} color="#fff" />
-          <Text style={styles.button_google_Text}> Google</Text>
+          {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.button_google_Text}> Google</Text>}
         </TouchableOpacity>
       </View>
     </TouchableWithoutFeedback>

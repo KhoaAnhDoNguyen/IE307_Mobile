@@ -14,8 +14,8 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
-import { supabase } from '../supabaseClient'; // Import client Supabase
-
+import { supabase } from '../supabaseClient';
+import AsyncStorage from '@react-native-async-storage/async-storage'; // Import AsyncStorage
 
 
 interface NavigationProp {
@@ -30,7 +30,6 @@ const SignIn: React.FC = () => {
   const [isFocusedEmail, setIsFocusedEmail] = useState<boolean>(false);
   const [isFocusedPassword, setIsFocusedPassword] = useState<boolean>(false);
 
-  
   const handleEmailChange = useCallback((text: string) => {
     setEmail(text);
   }, []);
@@ -44,17 +43,23 @@ const SignIn: React.FC = () => {
       Alert.alert('Error', 'Please enter email and password.');
       return;
     }
-  
+
     try {
       const { data, error } = await supabase
         .from('users')
         .select('*')
         .eq('email', email)
         .eq('password', password);
-  
+
       if (error) {
         Alert.alert('Error', error.message);
       } else if (data && data.length > 0) {
+        const user = data[0];
+        
+        // Lưu thông tin người dùng vào AsyncStorage
+        await AsyncStorage.setItem('user', JSON.stringify(user));
+
+        // Điều hướng đến trang HomePage
         navigation.navigate('HomePage');
       } else {
         Alert.alert('Error', 'Invalid email or password.');
@@ -63,12 +68,10 @@ const SignIn: React.FC = () => {
       Alert.alert('Error', 'Something went wrong. Please try again.');
     }
   };
-  
 
   return (
     <ScrollView contentContainerStyle={styles.scrollContainer}>
       <StatusBar barStyle="light-content" backgroundColor="#000" />
-
       {/* Mũi tên quay lại */}
       <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
         <Icon name="arrow-back" size={30} color="#fff" />
@@ -102,14 +105,12 @@ const SignIn: React.FC = () => {
         <View style={[styles.underline, { backgroundColor: isFocusedPassword ? '#FCC434' : '#fff' }]} />
       </View>
 
-      {/* Chuyển nút Log In vào một View khác */}
       <View style={styles.buttonContainer}>
         <TouchableOpacity style={styles.button_login} onPress={handleLogin}>
           <Text style={styles.button_login_Text}>Log In</Text>
         </TouchableOpacity>
       </View>
 
-      {/* Thanh phân cách và nút Login with Google */}
       <View style={styles.separatorContainer}>
         <View style={styles.separator} />
         <Text style={styles.separatorText}>Or continue with</Text>

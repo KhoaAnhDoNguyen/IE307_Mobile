@@ -1,11 +1,43 @@
-// authority/SignUp.tsx
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Button,
+} from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useNavigation } from '@react-navigation/native';
+import Footer from './Footer';
+
+interface NavigationProp {
+  navigate: (screen: string) => void;
+}
 
 const HomePage: React.FC = () => {
+  const navigation = useNavigation<NavigationProp>();
+  const [user, setUser] = useState<any>(null);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const storedUser = await AsyncStorage.getItem('user');
+      if (storedUser) {
+        setUser(JSON.parse(storedUser));
+      }
+    };
+    fetchUser();
+  }, []);
+
+  const handleLogout = async () => {
+    await AsyncStorage.removeItem('user');
+    navigation.navigate('StartScreen');
+  };
+
   return (
     <View style={styles.container}>
-      <Text style={styles.text}>This is Home page</Text>
+     
+        <Button title="Logout" onPress={handleLogout} />
+
+      <Footer />
     </View>
   );
 };
@@ -13,13 +45,8 @@ const HomePage: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#fff',
-  },
-  text: {
-    fontSize: 24,
-    fontWeight: 'bold',
+    backgroundColor: '#000',
+    justifyContent: 'space-between', // Thay đổi để đảm bảo Footer ở dưới cùng
   },
 });
 
