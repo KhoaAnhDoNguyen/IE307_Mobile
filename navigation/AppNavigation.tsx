@@ -5,6 +5,7 @@ import StartScreen from '../components/StartScreen';
 import SignIn from '../authority/SignIn';
 import SignUp from '../authority/SignUp';
 import HomePage from '../components/HomePage';
+import Movie from '../components/Movie'
 
 const Stack = createStackNavigator();
 
@@ -16,6 +17,7 @@ const AppNavigator = () => {
         <Stack.Screen name="SignIn" component={SignIn} options={{ headerShown: false }} />
         <Stack.Screen name="SignUp" component={SignUp} options={{ headerShown: false }} />
         <Stack.Screen name="HomePage" component={HomePage} options={{ headerShown: false }} />
+        <Stack.Screen name="Movie" component={Movie} options={{ headerShown: false }} />
       </Stack.Navigator>
     </NavigationContainer>
   );

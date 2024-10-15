@@ -1,10 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  Button,
-} from 'react-native';
+import { View, Button, StyleSheet } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
 import Footer from './Footer';
@@ -34,9 +29,7 @@ const HomePage: React.FC = () => {
 
   return (
     <View style={styles.container}>
-     
-        <Button title="Logout" onPress={handleLogout} />
-
+      <Button title="Logout" onPress={handleLogout} />
       <Footer />
     </View>
   );
@@ -46,7 +39,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#000',
-    justifyContent: 'space-between', // Thay đổi để đảm bảo Footer ở dưới cùng
+    justifyContent: 'space-between', // Đảm bảo Footer ở dưới cùng
   },
 });
 

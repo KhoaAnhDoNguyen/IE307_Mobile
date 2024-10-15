@@ -39,35 +39,35 @@ const SignIn: React.FC = () => {
   }, []);
 
   const handleLogin = async () => {
+    //console.log("Login button pressed"); // In ra terminal khi nút Log In được bấm
     if (!email || !password) {
       Alert.alert('Error', 'Please enter email and password.');
       return;
     }
-
+  
     try {
       const { data, error } = await supabase
         .from('users')
         .select('*')
         .eq('email', email)
         .eq('password', password);
-
+  
       if (error) {
         Alert.alert('Error', error.message);
       } else if (data && data.length > 0) {
         const user = data[0];
         
-        // Lưu thông tin người dùng vào AsyncStorage
         await AsyncStorage.setItem('user', JSON.stringify(user));
-
-        // Điều hướng đến trang HomePage
         navigation.navigate('HomePage');
       } else {
         Alert.alert('Error', 'Invalid email or password.');
       }
     } catch (error) {
+      console.log(error); // In lỗi ra terminal nếu có
       Alert.alert('Error', 'Something went wrong. Please try again.');
     }
   };
+  
 
   return (
     <ScrollView contentContainerStyle={styles.scrollContainer}>
