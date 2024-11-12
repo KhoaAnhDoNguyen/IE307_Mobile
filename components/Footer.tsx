@@ -6,7 +6,9 @@ import { CompositeNavigationProp, NavigationProp, useNavigation as useNavigation
 type RootStackParamList = {
   HomePage: undefined;
   Movie: undefined;
-  // Thêm các trang khác nếu cần
+  Profile: undefined;
+  Ticket: undefined;
+  ChatBot: undefined;
 };
 
 type NavigationProps = CompositeNavigationProp<
@@ -35,19 +37,19 @@ const Footer: React.FC = () => {
       </TouchableOpacity>
 
       {/* Các icon khác */}
-      <TouchableOpacity style={styles.iconContainer} onPress={() => navigation.navigate('TicketPage')}>
-        <Icon name="ticket" size={20} color={currentRoute === 'TicketPage' ? '#FFD700' : '#FFFFFF'} />
-        <Text style={[styles.iconText, { color: currentRoute === 'TicketPage' ? '#FFD700' : '#FFFFFF' }]}>Ticket</Text>
+      <TouchableOpacity style={styles.iconContainer} onPress={() => navigation.navigate('Ticket')}>
+        <Icon name="ticket" size={20} color={currentRoute === 'Ticket' ? '#FFD700' : '#FFFFFF'} />
+        <Text style={[styles.iconText, { color: currentRoute === 'Ticket' ? '#FFD700' : '#FFFFFF' }]}>Ticket</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity style={styles.iconContainer} onPress={() => navigation.navigate('ChatbotPage')}>
-        <Icon name="comment" size={20} color={currentRoute === 'ChatbotPage' ? '#FFD700' : '#FFFFFF'} />
-        <Text style={[styles.iconText, { color: currentRoute === 'ChatbotPage' ? '#FFD700' : '#FFFFFF' }]}>Chatbot</Text>
+      <TouchableOpacity style={styles.iconContainer} onPress={() => navigation.navigate('ChatBot')}>
+        <Icon name="comment" size={20} color={currentRoute === 'ChatBot' ? '#FFD700' : '#FFFFFF'} />
+        <Text style={[styles.iconText, { color: currentRoute === 'ChatBot' ? '#FFD700' : '#FFFFFF' }]}>Chatbot</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity style={styles.iconContainer} onPress={() => navigation.navigate('ProfilePage')}>
-        <Icon name="user" size={20} color={currentRoute === 'ProfilePage' ? '#FFD700' : '#FFFFFF'} />
-        <Text style={[styles.iconText, { color: currentRoute === 'ProfilePage' ? '#FFD700' : '#FFFFFF' }]}>Profile</Text>
+      <TouchableOpacity style={styles.iconContainer} onPress={() => navigation.navigate('Profile')}>
+        <Icon name="user" size={20} color={currentRoute === 'Profile' ? '#FFD700' : '#FFFFFF'} />
+        <Text style={[styles.iconText, { color: currentRoute === 'Profile' ? '#FFD700' : '#FFFFFF' }]}>Profile</Text>
       </TouchableOpacity>
     </View>
   );

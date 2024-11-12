@@ -5,8 +5,12 @@ import StartScreen from '../components/StartScreen';
 import SignIn from '../authority/SignIn';
 import SignUp from '../authority/SignUp';
 import HomePage from '../components/HomePage';
-import Movie from '../components/Movie'
-
+import Movie from '../components/Movie';
+import Ticket from '../components/Ticket';
+import Payment from '../components/Payment';
+import Profile from '../authority/Profile';
+import UserDetail from '../authority/UserDetail';
+import ChatBot from '../chatbot/ChatBot'
 const Stack = createStackNavigator();
 
 const AppNavigator = () => {
@@ -18,6 +22,11 @@ const AppNavigator = () => {
         <Stack.Screen name="SignUp" component={SignUp} options={{ headerShown: false }} />
         <Stack.Screen name="HomePage" component={HomePage} options={{ headerShown: false }} />
         <Stack.Screen name="Movie" component={Movie} options={{ headerShown: false }} />
+        <Stack.Screen name="Ticket" component={Ticket} options={{ headerShown: false }} />
+        <Stack.Screen name="Profile" component={Profile} options={{headerShown:false}} />
+        <Stack.Screen name="ChatBot" component={ChatBot} options={{headerShown:false}} />
+        <Stack.Screen name="Payment" component={Payment} options={{headerShown:false}} />
+        <Stack.Screen name="UserDetail" component={UserDetail} options={{headerShown:false}} />
       </Stack.Navigator>
     </NavigationContainer>
   );

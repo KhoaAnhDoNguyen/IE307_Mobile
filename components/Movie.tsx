@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { View, TouchableOpacity, Text, StyleSheet, FlatList, Image } from 'react-native';
-import Footer from './Footer'; // Giả sử bạn đã có Footer.tsx
-import { supabase } from '../supabaseClient';
-import Icon from 'react-native-vector-icons/FontAwesome'; // Import icon
+import Footer from './Footer';
+import { supabase } from '../lib/supabase';
+import Icon from 'react-native-vector-icons/FontAwesome';
 
 interface MovieType {
   idfilm: number;
@@ -15,7 +15,6 @@ interface MovieType {
   total_comments: number;
 }
 
-// Đối tượng ánh xạ hình ảnh
 const imageMapping: { [key: string]: any } = {
   'assets/Films/Film1.png': require('../assets/Films/Film1.png'),
   'assets/Films/Film2.png': require('../assets/Films/Film2.png'),
@@ -25,12 +24,12 @@ const imageMapping: { [key: string]: any } = {
   'assets/Films/Film6.png': require('../assets/Films/Film6.png'),
   'assets/Films/Film7.png': require('../assets/Films/Film7.png'),
   'assets/Films/Film8.png': require('../assets/Films/Film8.png'),
-  // Thêm các hình ảnh khác vào đây
 };
 
 const Movie: React.FC = () => {
   const [selectedTab, setSelectedTab] = useState<'nowPlaying' | 'comingSoon'>('nowPlaying');
   const [movies, setMovies] = useState<MovieType[]>([]);
+  const flatListRef = useRef<FlatList>(null);
 
   const fetchMovies = async () => {
     const status = selectedTab === 'nowPlaying' ? 1 : 0;
@@ -81,48 +80,50 @@ const Movie: React.FC = () => {
     fetchMovies();
   }, [selectedTab]);
 
-  // Hàm để lấy hình ảnh
   const getImageSource = (uri: string) => {
-    const imagePath = uri.startsWith('/') ? uri.slice(1) : uri; // Bỏ dấu "/" đầu tiên
-    return imageMapping[imagePath] || require('../assets/Films/Film1.png'); // Trả về hình ảnh mặc định nếu không tìm thấy
+    const imagePath = uri.startsWith('/') ? uri.slice(1) : uri;
+    return imageMapping[imagePath] || require('../assets/Films/Film1.png');
   };
 
-  const renderMovieItem = ({ item }: { item: MovieType }) => {
-    return (
-      <View style={styles.movieItem}>
-        <Image source={getImageSource(item.image)} style={styles.image} />
-        <Text style={styles.filmName}>{item.filmname}</Text>
-        {selectedTab === 'nowPlaying' ? (
-          <>
-            <View style={styles.ratingContainer}>
-              <Icon name="star" size={16} color="#FFD700" />
-              <Text style={styles.rating}>
-                {item.average_rating} ({item.total_comments})
-              </Text>
-            </View>
-            <View style={styles.timeContainer}>
-              <Icon name="clock-o" size={16} color="#fff" />
-              <Text style={styles.time}>{item.time}</Text>
-            </View>
-            <View style={styles.typeContainer}>
-              <Icon name="film" size={16} color="#fff" />
-              <Text style={styles.type}>{item.type}</Text>
-            </View>
-          </>
-        ) : (
-          <>
-            <View style={styles.premiereContainer}>
-              <Icon name="calendar" size={16} color="#fff" />
-              <Text style={styles.premiere}>{item.premiere}</Text>
-            </View>
-            <View style={styles.typeContainer}>
-              <Icon name="film" size={16} color="#fff" />
-              <Text style={styles.type}>{item.type}</Text>
-            </View>
-          </>
-        )}
-      </View>
-    );
+  const renderMovieItem = ({ item }: { item: MovieType }) => (
+    <View style={styles.movieItem}>
+      <Image source={getImageSource(item.image)} style={styles.image} />
+      <Text style={styles.filmName}>{item.filmname}</Text>
+      {selectedTab === 'nowPlaying' ? (
+        <>
+          <View style={styles.ratingContainer}>
+            <Icon name="star" size={16} color="#FFD700" />
+            <Text style={styles.rating}>
+              {item.average_rating} ({item.total_comments})
+            </Text>
+          </View>
+          <View style={styles.timeContainer}>
+            <Icon name="clock-o" size={16} color="#fff" />
+            <Text style={styles.time}>{item.time}</Text>
+          </View>
+          <View style={styles.typeContainer}>
+            <Icon name="film" size={16} color="#fff" />
+            <Text style={styles.type}>{item.type}</Text>
+          </View>
+        </>
+      ) : (
+        <>
+          <View style={styles.premiereContainer}>
+            <Icon name="calendar" size={16} color="#fff" />
+            <Text style={styles.premiere}>{item.premiere}</Text>
+          </View>
+          <View style={styles.typeContainer}>
+            <Icon name="film" size={16} color="#fff" />
+            <Text style={styles.type}>{item.type}</Text>
+          </View>
+        </>
+      )}
+    </View>
+  );
+
+  const handleTabPress = (tab: 'nowPlaying' | 'comingSoon') => {
+    setSelectedTab(tab);
+    flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
   };
 
   return (
@@ -130,7 +131,7 @@ const Movie: React.FC = () => {
       <View style={styles.tabContainer}>
         <TouchableOpacity
           style={[styles.tabButton, selectedTab === 'nowPlaying' && styles.activeTab]}
-          onPress={() => setSelectedTab('nowPlaying')}
+          onPress={() => handleTabPress('nowPlaying')}
         >
           <Text style={[styles.tabText, selectedTab === 'nowPlaying' && styles.activeTabText]}>
             Now playing
@@ -138,7 +139,7 @@ const Movie: React.FC = () => {
         </TouchableOpacity>
         <TouchableOpacity
           style={[styles.tabButton, selectedTab === 'comingSoon' && styles.activeTab]}
-          onPress={() => setSelectedTab('comingSoon')}
+          onPress={() => handleTabPress('comingSoon')}
         >
           <Text style={[styles.tabText, selectedTab === 'comingSoon' && styles.activeTabText]}>
             Coming soon
@@ -147,6 +148,7 @@ const Movie: React.FC = () => {
       </View>
 
       <FlatList
+        ref={flatListRef}
         data={movies}
         keyExtractor={(item) => item.idfilm.toString()}
         renderItem={renderMovieItem}
@@ -154,7 +156,6 @@ const Movie: React.FC = () => {
         columnWrapperStyle={styles.row}
       />
 
-      {/* Đảm bảo Footer luôn nằm ở dưới cùng và không bị khuất */}
       <View style={styles.footerWrapper}>
         <Footer />
       </View>
@@ -167,7 +168,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#000',
     padding: 10,
-    paddingBottom: 80, // Để tạo không gian cho Footer
+    paddingBottom: 80,
   },
   footerWrapper: {
     position: 'absolute',
@@ -208,23 +209,23 @@ const styles = StyleSheet.create({
     backgroundColor: '#222',
     borderRadius: 8,
     padding: 10,
-    alignItems: 'flex-start', // Canh giữa nội dung
-    marginBottom: 25
+    alignItems: 'flex-start',
+    marginBottom: 25,
   },
   filmName: {
     color: '#FFD700',
     fontSize: 16,
     fontWeight: 'bold',
     marginTop: 5,
-    textAlign: 'center', // Căn giữa cho tên phim
+    textAlign: 'center',
   },
   image: {
-    width: '100%', // Chiếm toàn bộ chiều rộng của item
-    aspectRatio: 175 / 267, // Tỷ lệ chiều rộng/chiều cao
-    resizeMode: 'cover', // Giữ tỷ lệ nhưng không làm biến dạng ảnh
-    marginTop: -10, // Điều chỉnh vị trí ảnh nếu cần
+    width: '100%',
+    aspectRatio: 175 / 267,
+    resizeMode: 'cover',
+    marginTop: -10,
     borderRadius: 10,
-    marginLeft: -9
+    marginLeft: -9,
   },
   ratingContainer: {
     flexDirection: 'row',

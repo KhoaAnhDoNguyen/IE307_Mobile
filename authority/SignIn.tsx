@@ -14,7 +14,7 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
-import { supabase } from '../supabaseClient';
+import { supabase } from '../lib/supabase';
 import AsyncStorage from '@react-native-async-storage/async-storage'; // Import AsyncStorage
 
 
