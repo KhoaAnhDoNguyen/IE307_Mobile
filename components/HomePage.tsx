@@ -6,6 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '../lib/supabase';
 import Footer from './Footer';
 
+
 interface Film {
   idfilm: number;
   filmname: string;
@@ -33,7 +34,7 @@ const imageMapping: { [key: string]: any } = {
 };
 
 interface NavigationProp {
-  navigate: (screen: string) => void;
+  navigate: (screen: string, params?: { tab: string }) => void;
 }
 
 const HomePage: React.FC = () => {
@@ -183,7 +184,7 @@ const HomePage: React.FC = () => {
 
         <View style={styles.nowPlayingHeader}>
           <Text style={styles.nowPlayingText}>Now playing</Text>
-          <TouchableOpacity onPress={() => navigation.navigate('Movie')}>
+          <TouchableOpacity  onPress={() => navigation.navigate('Movie')}>
             <Text style={styles.seeAllButton}>See all</Text>
           </TouchableOpacity>
         </View>
@@ -225,7 +226,8 @@ const HomePage: React.FC = () => {
 
         <View style={styles.comingSoonHeader}>
           <Text style={styles.nowPlayingText}>Coming Soon</Text>
-          <TouchableOpacity onPress={() => navigation.navigate('Movie')}>
+          <TouchableOpacity onPress={() => navigation.navigate('Movie', { tab: 'comingSoon' })}>
+
             <Text style={styles.seeAllButton}>See all</Text>
           </TouchableOpacity>
         </View>
@@ -409,7 +411,7 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   comingSoonFilmName: {
-    color: 'white',
+    color: 'gold',
     fontSize: 16,
     fontWeight: '600',
     marginBottom: 4,

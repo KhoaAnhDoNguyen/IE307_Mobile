@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, Text, View, Image, TouchableOpacity } from 'react-native';
+import { StyleSheet, Text, View, Image, TouchableOpacity, Alert } from 'react-native';
 import Footer from '../components/Footer';
 import { supabase } from '../lib/supabase';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation, NavigationProp, useFocusEffect } from '@react-navigation/native';
+import * as ImagePicker from 'expo-image-picker';
 
 interface RootStackParamList {
     StartScreen: undefined;
@@ -18,9 +19,24 @@ const Profile: React.FC = () => {
     const [user, setUser] = useState<any>(null);
 
     const fetchUser = async () => {
-        const storedUser = await AsyncStorage.getItem('user');
-        if (storedUser) {
-            setUser(JSON.parse(storedUser));
+        try {
+            const storedUser = await AsyncStorage.getItem('user');
+            if (storedUser) {
+                const parsedUser = JSON.parse(storedUser);
+                const { data, error } = await supabase
+                    .from('users')
+                    .select('*')
+                    .eq('id', parsedUser.id)
+                    .single();
+
+                if (error) throw error;
+                if (data) {
+                    setUser(data);
+                    await AsyncStorage.setItem('user', JSON.stringify(data));
+                }
+            }
+        } catch (error) {
+            console.error('Error fetching user data:', error);
         }
     };
 
@@ -39,17 +55,44 @@ const Profile: React.FC = () => {
         navigation.navigate('StartScreen');
     };
 
+    const onSelectImage = async () => {
+        let result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            allowsEditing: true,
+            aspect: [4, 3],
+            quality: 0.7,
+        });
+
+        if (!result.canceled && result.assets[0].uri) {
+            const newAvatarUri = result.assets[0].uri;
+
+            // Lưu URI avatar vào database
+            const { error } = await supabase
+                .from('users')
+                .update({ avatar: newAvatarUri })
+                .eq('id', user.id);
+
+            if (error) {
+                console.error('Error updating avatar:', error.message);
+                Alert.alert('Error', 'Failed to update avatar.');
+            } else {
+                await fetchUser(); // Lấy lại dữ liệu user sau khi cập nhật
+                Alert.alert('Success', 'Avatar updated successfully!');
+            }
+        }
+    };
+
     return (
         <View style={styles.container}>
             {/* Profile Information */}
             <View style={styles.profileContainer}>
-                <View style={styles.avatarContainer}>
+                <TouchableOpacity style={styles.avatarContainer} onPress={onSelectImage}>
                     {user?.avatar ? (
                         <Image source={{ uri: user.avatar }} style={styles.avatar} />
                     ) : (
                         <Icon name="user" size={80} color="#fff" />
                     )}
-                </View>
+                </TouchableOpacity>
 
                 <View style={styles.infoContainer}>
                     <Text style={styles.name}>{user?.name || 'Anonymous'}</Text>
@@ -72,37 +115,34 @@ const Profile: React.FC = () => {
             </View>
 
             {/* Options */}
-        <View style={styles.optionsContainer}>
-            <TouchableOpacity style={styles.option} onPress={() => navigation.navigate('Ticket')}>
-                <Icon name="ticket" size={28} color="#fff" />
-                <Text style={styles.optionText}>My ticket</Text>
-                <Icon name="chevron-right" size={24} color="#fff" style={styles.arrow} />
-            </TouchableOpacity>
-            <View style={styles.divider} />
+            <View style={styles.optionsContainer}>
+                <TouchableOpacity style={styles.option} onPress={() => navigation.navigate('Ticket')}>
+                    <Icon name="ticket" size={28} color="#fff" />
+                    <Text style={styles.optionText}>My ticket</Text>
+                    <Icon name="chevron-right" size={24} color="#fff" style={styles.arrow} />
+                </TouchableOpacity>
+                <View style={styles.divider} />
 
-            <TouchableOpacity style={styles.option} onPress={() => navigation.navigate('Payment')}>
-                <Icon name="shopping-cart" size={28} color="#fff" />
-                <Text style={styles.optionText}>Payment history</Text>
-                <Icon name="chevron-right" size={24} color="#fff" style={styles.arrow} />
-            </TouchableOpacity>
-            <View style={styles.divider} />
+                <TouchableOpacity style={styles.option} onPress={() => navigation.navigate('Payment')}>
+                    <Icon name="shopping-cart" size={28} color="#fff" />
+                    <Text style={styles.optionText}>Payment history</Text>
+                    <Icon name="chevron-right" size={24} color="#fff" style={styles.arrow} />
+                </TouchableOpacity>
+                <View style={styles.divider} />
 
-            <TouchableOpacity style={styles.option} onPress={() => navigation.navigate('UserDetail')}>
-                <Icon name="lock" size={28} color="#fff" />
-                <Text style={styles.optionText}>Change password</Text>
-                <Icon name="chevron-right" size={24} color="#fff" style={styles.arrow} />
-            </TouchableOpacity>
-            <View style={styles.divider} />
+                <TouchableOpacity style={styles.option} onPress={() => navigation.navigate('UserDetail')}>
+                    <Icon name="lock" size={28} color="#fff" />
+                    <Text style={styles.optionText}>Change password</Text>
+                    <Icon name="chevron-right" size={24} color="#fff" style={styles.arrow} />
+                </TouchableOpacity>
+                <View style={styles.divider} />
 
-            {/* Log Out Option */}
-            <TouchableOpacity style={styles.option} onPress={handleLogout}>
-                <Icon name="sign-out" size={28} color="#fff" />
-                <Text style={styles.optionText}>Log out</Text>
-            </TouchableOpacity>
-        </View>
-
-
-
+                {/* Log Out Option */}
+                <TouchableOpacity style={styles.option} onPress={handleLogout}>
+                    <Icon name="sign-out" size={28} color="#fff" />
+                    <Text style={styles.optionText}>Log out</Text>
+                </TouchableOpacity>
+            </View>
 
             {/* Footer */}
             <Footer />

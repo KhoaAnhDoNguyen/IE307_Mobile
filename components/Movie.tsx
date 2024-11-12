@@ -3,6 +3,7 @@ import { View, TouchableOpacity, Text, StyleSheet, FlatList, Image } from 'react
 import Footer from './Footer';
 import { supabase } from '../lib/supabase';
 import Icon from 'react-native-vector-icons/FontAwesome';
+import { useRoute, RouteProp } from '@react-navigation/native';
 
 interface MovieType {
   idfilm: number;
@@ -26,8 +27,14 @@ const imageMapping: { [key: string]: any } = {
   'assets/Films/Film8.png': require('../assets/Films/Film8.png'),
 };
 
+type MovieRouteParams = {
+  tab: 'nowPlaying' | 'comingSoon';
+};
+
 const Movie: React.FC = () => {
-  const [selectedTab, setSelectedTab] = useState<'nowPlaying' | 'comingSoon'>('nowPlaying');
+  const route = useRoute<RouteProp<{ params: MovieRouteParams }, 'params'>>();
+  const initialTab = route.params?.tab || 'nowPlaying';
+  const [selectedTab, setSelectedTab] = useState<'nowPlaying' | 'comingSoon'>(initialTab);
   const [movies, setMovies] = useState<MovieType[]>([]);
   const flatListRef = useRef<FlatList>(null);
 
