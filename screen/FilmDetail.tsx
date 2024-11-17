@@ -1,9 +1,12 @@
-import { StyleSheet, Text, View, Image, TouchableOpacity, Alert } from 'react-native';
+import { StyleSheet, Text, View, Image, TouchableOpacity, Alert, Modal } from 'react-native';
 import React, { useEffect, useState } from 'react';
 import { RouteProp, useRoute, useNavigation } from '@react-navigation/native';
 import { supabase } from '../lib/supabase';
 import { FontAwesome } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+
+import { Video, AVPlaybackStatus, ResizeMode  } from 'expo-av';
+
 
 type RootStackParamList = {
   FilmDetail: { id: number; userId: string }; 
@@ -18,6 +21,17 @@ const imageMapping: { [key: string]: any } = {
   'assets/Films/Film6.png': require('../assets/Films/Film6.png'),
   'assets/Films/Film7.png': require('../assets/Films/Film7.png'),
   'assets/Films/Film8.png': require('../assets/Films/Film8.png'),
+};
+
+const videoMapping: { [key: string]: any } = {
+  '../assets/Films/Film1.mp4': require('../assets/Films/Film3.mp4'),
+  '../assets/Films/Film2.mp4': require('../assets/Films/Film3.mp4'),
+  '../assets/Films/Film3.mp4': require('../assets/Films/Film3.mp4'),
+  '../assets/Films/Film4.mp4': require('../assets/Films/Film3.mp4'),
+  '../assets/Films/Film5.mp4': require('../assets/Films/Film3.mp4'),
+  '../assets/Films/Film6.mp4': require('../assets/Films/Film3.mp4'),
+  '../assets/Films/Film7.mp4': require('../assets/Films/Film3.mp4'),
+  '../assets/Films/Film8.mp4': require('../assets/Films/Film3.mp4'),
 };
 
 type FilmDetailRouteProp = RouteProp<RootStackParamList, 'FilmDetail'>;
@@ -45,6 +59,9 @@ const FilmDetail = () => {
   const [averageRating, setAverageRating] = useState<number | null>(null);
   const [userRating, setUserRating] = useState<number | null>(null);
   const [user, setUser] = useState<any>(null);
+  const [isTrailerVisible, setIsTrailerVisible] = useState(false);
+  const videoRef = React.useRef(null);
+
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -138,6 +155,11 @@ const FilmDetail = () => {
     return imageMapping[imagePath] || require('../assets/Films/Film1.png');
   };
 
+  const getVideoSource = (uri: string) => {
+    const videoPath =  uri;
+    return videoMapping[videoPath] || require('../assets/Films/Film3.mp4');
+  };
+
   return (
     <View style={styles.container}>
       <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
@@ -165,14 +187,39 @@ const FilmDetail = () => {
             ))}
           </View>
 
-          <TouchableOpacity style={styles.trailerButton}>
-            <FontAwesome name="play" size={16} color="#FFFFFF" />
+          <TouchableOpacity style={styles.trailerButton} onPress={() => setIsTrailerVisible(true)}>
+          <FontAwesome name="play" size={16} color="#FFFFFF" />
             <Text style={styles.trailerText}>Watch Trailer</Text>
           </TouchableOpacity>
         </View>
       </View>
+
+      <Modal
+        visible={isTrailerVisible}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setIsTrailerVisible(false)}
+      >
+      <View style={styles.modalBackground}>
+        <View style={styles.modalContent}>
+        <Video
+          ref={videoRef}
+          source={getVideoSource(movieDetails.demo)} // URL của video
+          style={styles.video}
+          resizeMode={ResizeMode.CONTAIN} // Sử dụng enum ResizeMode
+          isLooping
+          shouldPlay
+        />
+        <TouchableOpacity style={styles.closeButton} onPress={() => setIsTrailerVisible(false)}>
+          <FontAwesome name="times" size={28} color="#FFFFFF" />
+        </TouchableOpacity>
+        </View>
+        </View>
+      </Modal>
     </View>
   );
+  
+
 };
 
 export default FilmDetail;
@@ -256,5 +303,28 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     marginLeft: 5,
     fontSize: 16,
+  },
+
+  modalBackground: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  video: {
+    width: '100%',
+    height: '100%',
+  },
+  closeButton: {
+    position: 'absolute',
+    top: 40,
+    right: 20,
+    zIndex: 1,
   },
 });
