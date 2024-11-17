@@ -3,9 +3,12 @@ import { View, TouchableOpacity, Text, StyleSheet, FlatList, Image } from 'react
 import Footer from './Footer';
 import { supabase } from '../lib/supabase';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import { useRoute, RouteProp } from '@react-navigation/native';
+import { useRoute, RouteProp  } from '@react-navigation/native';
 
-interface MovieType {
+import { useNavigation } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
+
+export interface MovieType {
   idfilm: number;
   filmname: string;
   type: string;
@@ -31,6 +34,13 @@ type MovieRouteParams = {
   tab: 'nowPlaying' | 'comingSoon';
 };
 
+type RootStackParamList = {
+  Movie: undefined;
+  FilmDetail: { id: number };
+};
+
+type MovieScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Movie'>;
+
 const Movie: React.FC = () => {
   const route = useRoute<RouteProp<{ params: MovieRouteParams }, 'params'>>();
   const initialTab = route.params?.tab || 'nowPlaying';
@@ -38,6 +48,12 @@ const Movie: React.FC = () => {
   const [movies, setMovies] = useState<MovieType[]>([]);
   const flatListRef = useRef<FlatList>(null);
 
+  const navigation = useNavigation<MovieScreenNavigationProp>();
+
+  const handleMoviePress = (movie: MovieType) => {
+    navigation.navigate('FilmDetail', { id: movie.idfilm });
+  };
+  
   const fetchMovies = async () => {
     const status = selectedTab === 'nowPlaying' ? 1 : 0;
 
@@ -93,7 +109,7 @@ const Movie: React.FC = () => {
   };
 
   const renderMovieItem = ({ item }: { item: MovieType }) => (
-    <View style={styles.movieItem}>
+    <TouchableOpacity onPress={() => handleMoviePress(item)} style={styles.movieItem}>
       <Image source={getImageSource(item.image)} style={styles.image} />
       <Text style={styles.filmName}>{item.filmname}</Text>
       {selectedTab === 'nowPlaying' ? (
@@ -125,7 +141,7 @@ const Movie: React.FC = () => {
           </View>
         </>
       )}
-    </View>
+    </TouchableOpacity>
   );
 
   const handleTabPress = (tab: 'nowPlaying' | 'comingSoon') => {
