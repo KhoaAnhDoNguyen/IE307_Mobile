@@ -1,15 +1,15 @@
-import { StyleSheet, Text, View, Image, TouchableOpacity, Alert, Modal } from 'react-native';
+import { StyleSheet, Text, View, Image, TouchableOpacity, Alert, Modal, ScrollView } from 'react-native';
 import React, { useEffect, useState } from 'react';
 import { RouteProp, useRoute, useNavigation } from '@react-navigation/native';
 import { supabase } from '../lib/supabase';
 import { FontAwesome } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
-import { Video, AVPlaybackStatus, ResizeMode  } from 'expo-av';
-
+import Director from './Director';
+import Cinemas from './Cinemas';
+import { Video, ResizeMode } from 'expo-av';
 
 type RootStackParamList = {
-  FilmDetail: { id: number; userId: string }; 
+  FilmDetail: { id: number; userId: string };
 };
 
 const imageMapping: { [key: string]: any } = {
@@ -62,7 +62,6 @@ const FilmDetail = () => {
   const [isTrailerVisible, setIsTrailerVisible] = useState(false);
   const videoRef = React.useRef(null);
 
-
   useEffect(() => {
     const fetchUser = async () => {
       const storedUser = await AsyncStorage.getItem('user');
@@ -86,21 +85,6 @@ const FilmDetail = () => {
         console.error('Error fetching movie details:', error);
       } else {
         setMovieDetails(data);
-      }
-    };
-
-    const fetchAverageRating = async () => {
-      const { data, error } = await supabase
-        .from('user_film')
-        .select('star')
-        .eq('idfilm', id);
-
-      if (error) {
-        console.error('Error fetching average rating:', error);
-      } else if (data.length > 0) {
-        const totalStars = data.reduce((sum, record) => sum + record.star, 0);
-        const avgStars = totalStars / data.length;
-        setAverageRating(avgStars);
       }
     };
 
@@ -147,7 +131,13 @@ const FilmDetail = () => {
   };
 
   if (!movieDetails) {
-    return <Text>Loading...</Text>;
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#fff' }}>
+        <Text style={{ fontSize: 18, color: '#555', textAlign: 'center', margin: 20, fontWeight: 'bold' }}>
+          Loading...
+        </Text>
+      </View>
+    );
   }
 
   const getImageSource = (uri: string) => {
@@ -156,70 +146,69 @@ const FilmDetail = () => {
   };
 
   const getVideoSource = (uri: string) => {
-    const videoPath =  uri;
+    const videoPath = uri;
     return videoMapping[videoPath] || require('../assets/Films/Film3.mp4');
   };
 
   return (
     <View style={styles.container}>
-      <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-        <FontAwesome name="arrow-left" size={28} color="#FFFFFF" />
-      </TouchableOpacity>
-      <Image source={getImageSource(movieDetails.image)} style={styles.image} />
-      <View style={styles.infoBox}>
-        <Text style={styles.title}>{movieDetails.filmname}</Text>
-        <View style={styles.detailContainer}>
-          <Text style={styles.detail}>{movieDetails.time}</Text>
-          <Text style={styles.detail}>{movieDetails.premiere}</Text>
-        </View>
-        <View style={styles.reviewContainer}>
-          <Text style={styles.reviewText}>Review:</Text>
-          <FontAwesome name="star" size={16} color="gold" />
-          <Text style={styles.reviewText}>{averageRating ? averageRating.toFixed(1) : 'N/A'}</Text>
-        </View>
-
-        <View style={styles.starsAndTrailerContainer}>
-          <View style={styles.starsContainer}>
-            {[1, 2, 3, 4, 5].map((star) => (
-              <TouchableOpacity key={star} onPress={() => handleStarPress(star)}>
-                <FontAwesome name="star" size={24} color={userRating && userRating >= star ? "gold" : "gray"} style={styles.starIcon} />
-              </TouchableOpacity>
-            ))}
-          </View>
-
-          <TouchableOpacity style={styles.trailerButton} onPress={() => setIsTrailerVisible(true)}>
-          <FontAwesome name="play" size={16} color="#FFFFFF" />
-            <Text style={styles.trailerText}>Watch Trailer</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      <Modal
-        visible={isTrailerVisible}
-        animationType="slide"
-        transparent={true}
-        onRequestClose={() => setIsTrailerVisible(false)}
-      >
-      <View style={styles.modalBackground}>
-        <View style={styles.modalContent}>
-        <Video
-          ref={videoRef}
-          source={getVideoSource(movieDetails.demo)} // URL của video
-          style={styles.video}
-          resizeMode={ResizeMode.CONTAIN} // Sử dụng enum ResizeMode
-          isLooping
-          shouldPlay
-        />
-        <TouchableOpacity style={styles.closeButton} onPress={() => setIsTrailerVisible(false)}>
-          <FontAwesome name="times" size={28} color="#FFFFFF" />
+      <ScrollView contentContainerStyle={styles.scrollContentContainer}>
+        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+          <FontAwesome name="arrow-left" size={28} color="#FFFFFF" />
         </TouchableOpacity>
+        <Image source={getImageSource(movieDetails.image)} style={styles.image} />
+        <View style={styles.infoBox}>
+          <Text style={styles.title}>{movieDetails.filmname}</Text>
+          <View style={styles.detailContainer}>
+            <Text style={styles.detail}>{movieDetails.time}</Text>
+            <Text style={styles.detail}>{movieDetails.premiere}</Text>
+          </View>
+          <View style={styles.reviewContainer}>
+            <Text style={styles.reviewText}>Review:</Text>
+            <FontAwesome name="star" size={16} color="gold" />
+            <Text style={styles.reviewText}>{averageRating ? averageRating.toFixed(1) : 'N/A'}</Text>
+          </View>
+          <View style={styles.starsAndTrailerContainer}>
+            <View style={styles.starsContainer}>
+              {[1, 2, 3, 4, 5].map((star) => (
+                <TouchableOpacity key={star} onPress={() => handleStarPress(star)}>
+                  <FontAwesome name="star" size={24} color={userRating && userRating >= star ? "gold" : "gray"} style={styles.starIcon} />
+                </TouchableOpacity>
+              ))}
+            </View>
+            <TouchableOpacity style={styles.trailerButton} onPress={() => setIsTrailerVisible(true)}>
+              <FontAwesome name="play" size={16} color="#FFFFFF" />
+              <Text style={styles.trailerText}>Watch Trailer</Text>
+            </TouchableOpacity>
+          </View>
         </View>
-        </View>
-      </Modal>
+        <Modal
+          visible={isTrailerVisible}
+          animationType="slide"
+          transparent={true}
+          onRequestClose={() => setIsTrailerVisible(false)}
+        >
+          <View style={styles.modalBackground}>
+            <View style={styles.modalContent}>
+              <Video
+                ref={videoRef}
+                source={getVideoSource(movieDetails.demo)}
+                style={styles.video}
+                resizeMode={ResizeMode.CONTAIN}
+                isLooping
+                shouldPlay
+              />
+              <TouchableOpacity style={styles.closeButton} onPress={() => setIsTrailerVisible(false)}>
+                <FontAwesome name="times" size={28} color="#FFFFFF" />
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
+        <Director filmId={movieDetails.idfilm} />
+        <Cinemas filmId={movieDetails.idfilm} />
+      </ScrollView>
     </View>
   );
-  
-
 };
 
 export default FilmDetail;
@@ -228,6 +217,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#000000',
+  },
+  scrollContentContainer: {
+    paddingBottom: 20, // Thêm khoảng cách dưới cùng để cuộn dễ dàng hơn
   },
   backButton: {
     position: 'absolute',
@@ -238,16 +230,13 @@ const styles = StyleSheet.create({
   },
   image: {
     width: '100%',
-    height: '35%',
-    aspectRatio: 222 / 150,
+    height: 200, // Thay đổi chiều cao để dễ cuộn
     resizeMode: 'cover',
     borderRadius: 10,
   },
   infoBox: {
-    position: 'absolute',
-    bottom: 370,
-    left: 20,
-    right: 20,
+    marginTop: -60, // Thêm khoảng cách phía trên
+    marginHorizontal: 20,
     backgroundColor: '#1C1C1C',
     borderRadius: 10,
     padding: 15,
@@ -289,7 +278,7 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   starIcon: {
-    marginHorizontal: 5, // Tạo khoảng cách giữa các ngôi sao
+    marginHorizontal: 5,
   },
   trailerButton: {
     flexDirection: 'row',
@@ -297,14 +286,13 @@ const styles = StyleSheet.create({
     backgroundColor: '#FF5733',
     borderRadius: 5,
     padding: 10,
-    marginLeft: 24
+    marginLeft: 23
   },
   trailerText: {
     color: '#FFFFFF',
     marginLeft: 5,
     fontSize: 16,
   },
-
   modalBackground: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.8)',
