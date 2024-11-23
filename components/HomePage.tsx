@@ -5,9 +5,9 @@ import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '../lib/supabase';
 import Footer from './Footer';
+import { StackNavigationProp } from '@react-navigation/stack';
 
-
-interface Film {
+export interface Film {
   idfilm: number;
   filmname: string;
   type: string;
@@ -37,6 +37,12 @@ interface NavigationProp {
   navigate: (screen: string, params?: { tab: string }) => void;
 }
 
+type RootStackParamList = {
+  FilmDetail: { id: number };
+};
+
+type MovieScreenNavigationProp = StackNavigationProp<RootStackParamList, 'FilmDetail'>;
+
 const HomePage: React.FC = () => {
   const navigation = useNavigation<NavigationProp>();
   const [user, setUser] = useState<any>(null);
@@ -44,6 +50,11 @@ const HomePage: React.FC = () => {
   const [currentFilmIndex, setCurrentFilmIndex] = useState(0);
   const [comingSoonFilms, setComingSoonFilms] = useState<Film[]>([]);
   const flatListRef = useRef<FlatList>(null);
+  const navigations = useNavigation<MovieScreenNavigationProp>();
+
+  const handleMoviePress = (movie: Film) => {
+    navigations.navigate('FilmDetail', { id: movie.idfilm });
+  };
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -121,7 +132,7 @@ const HomePage: React.FC = () => {
     const isCurrent = index === currentFilmIndex;
 
     return (
-      <View style={styles.filmItemContainer}>
+      <TouchableOpacity onPress={() => handleMoviePress(item)} style={styles.filmItemContainer}>
         <Image
           source={getImageSource(item.image)}
           style={[styles.mainFilmImage, isCurrent ? styles.fullImage : styles.partialImage]}
@@ -130,13 +141,13 @@ const HomePage: React.FC = () => {
         <Text style={styles.filmName}>{item.filmname}</Text>
         <Text style={styles.filmDetails}>{item.time} • {item.type}</Text>
         <Text style={styles.starRating}>⭐ {item.starAverage?.toFixed(1) || 'N/A'}</Text>
-      </View>
+      </TouchableOpacity>
     );
   };
 
 
   const renderComingSoonFilmItem = ({ item }: { item: Film }) => (
-    <View style={styles.comingSoonFilmItem}>
+    <TouchableOpacity onPress={() => handleMoviePress(item)} style={styles.comingSoonFilmItem}>
       <Image
         source={getImageSource(item.image)}
         style={styles.comingSoonFilmImage}
@@ -153,8 +164,25 @@ const HomePage: React.FC = () => {
           <Text style={styles.comingSoonPremiereText}>{item.premiere}</Text>
         </View>
       </View>
-    </View>
+    </TouchableOpacity>
   );
+
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filteredFilms, setFilteredFilms] = useState<Film[]>([]);
+
+  const handleSearch = (text: string) => {
+    setSearchQuery(text);
+  
+    if (text.trim() === '') {
+      setFilteredFilms([]); // Xóa kết quả tìm kiếm nếu không có từ khóa
+    } else {
+      const matchingFilms = films.filter((film) =>
+        film.filmname.toLowerCase().includes(text.toLowerCase())
+      );
+      setFilteredFilms(matchingFilms);
+    }
+  };
+
   
   return (
     <View style={styles.container}>
@@ -179,8 +207,25 @@ const HomePage: React.FC = () => {
             placeholder="Search"
             placeholderTextColor="gray"
             style={styles.searchInput}
+            onChangeText={handleSearch}
           />
         </View>
+
+        {searchQuery.length > 0 && filteredFilms.length > 0 && (
+          <View style={styles.searchResultsContainer}>
+            <ScrollView>
+              {filteredFilms.map((item) => (
+                <TouchableOpacity
+                  key={item.idfilm.toString()}
+                  onPress={() => handleMoviePress(item)}
+                  style={styles.searchResultItem}
+                >
+                  <Text style={styles.searchResultText}>{item.filmname}</Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        )}
 
         <View style={styles.nowPlayingHeader}>
           <Text style={styles.nowPlayingText}>Now playing</Text>
@@ -438,7 +483,24 @@ const styles = StyleSheet.create({
   comingSoonList: {
     paddingVertical: 16,
   },
-  
+
+  searchResultsContainer: {
+    backgroundColor: '#333',
+    borderRadius: 8,
+    maxHeight: 200,
+    marginTop: -15,
+    padding: 10,
+    width: '100%', 
+  },
+  searchResultItem: {
+    paddingVertical: 10,
+    borderBottomWidth: 2,
+    borderBottomColor: 'gray',
+  },
+  searchResultText: {
+    color: 'white',
+    fontSize: 16,
+  },
 });
 
 export default HomePage;
