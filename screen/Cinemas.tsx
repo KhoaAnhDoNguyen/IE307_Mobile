@@ -1,6 +1,7 @@
 import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
+import { useNavigation } from '@react-navigation/native';
 
 interface CinemasProps {
   filmId: number; 
@@ -65,10 +66,12 @@ const Cinemas: React.FC<CinemasProps> = ({ filmId }) => {
     setSelectedCinemaId(prevId => (prevId === id ? null : id));
   };
 
+  const navigation = useNavigation(); // Hook for navigation
   const handleContinue = () => {
-    if (selectedCinemaId) {
-      console.log(`Continuing with cinema ID: ${selectedCinemaId}`);
-    }
+      if (selectedCinemaId) {
+        (navigation as any).navigate('Screen', { idfilm: filmId, idcinema: selectedCinemaId });
+    };
+    
   };
 
   if (loading) {

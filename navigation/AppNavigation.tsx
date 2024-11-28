@@ -12,6 +12,7 @@ import Profile from '../authority/Profile';
 import UserDetail from '../authority/UserDetail';
 import ChatBot from '../chatbot/ChatBot'
 import FilmDetail from '../screen/FilmDetail';
+import Screen from '../screen/Screen'
 const Stack = createStackNavigator();
 
 const AppNavigator = () => {
@@ -29,6 +30,7 @@ const AppNavigator = () => {
         <Stack.Screen name="Payment" component={Payment} options={{headerShown:false}} />
         <Stack.Screen name="UserDetail" component={UserDetail} options={{headerShown:false}} />
         <Stack.Screen name="FilmDetail" component={FilmDetail} options={{ headerShown: false }} />
+        <Stack.Screen name="Screen" component={Screen} options={{ headerShown: false }} />
       </Stack.Navigator>
     </NavigationContainer>
   );
