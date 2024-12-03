@@ -184,25 +184,33 @@ const Director: React.FC<DirectorProps> = ({ filmId }) => {
             </TouchableOpacity>
           </View>
 
-          <Text style={styles.directorTitle}>Directors</Text>          
-          <FlatList
-            data={directors}
-            renderItem={renderDirectorItem}
-            keyExtractor={(item) => item.iddirector.toString()}
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.directorList}
-          />
+          <Text style={styles.directorTitle}>Directors</Text>
+            {directors.length > 0 ? (
+              <FlatList
+                data={directors}
+                renderItem={renderDirectorItem}
+                keyExtractor={(item) => item.iddirector.toString()}
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.directorList}
+              />
+            ) : (
+              <Text style={styles.noResults}>Results not found</Text>
+            )}
 
-          <Text style={styles.actorTitle}>Actors</Text>          
-          <FlatList
-            data={actors}
-            renderItem={renderActorItem}
-            keyExtractor={(item) => item.idactor.toString()}
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.actorList}
-          />
+            <Text style={styles.actorTitle}>Actors</Text>
+            {actors.length > 0 ? (
+              <FlatList
+                data={actors}
+                renderItem={renderActorItem}
+                keyExtractor={(item) => item.idactor.toString()}
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.actorList}
+              />
+            ) : (
+              <Text style={styles.noResults}>Results not found</Text>
+            )}
         </>
       ) : (
         <Text style={styles.loading}>Loading...</Text>
@@ -302,4 +310,12 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 16,
   },
+  noResults: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginTop: 10,
+  },
+  
 });

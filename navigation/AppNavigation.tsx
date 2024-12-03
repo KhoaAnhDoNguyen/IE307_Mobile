@@ -7,7 +7,8 @@ import SignUp from '../authority/SignUp';
 import HomePage from '../components/HomePage';
 import Movie from '../components/Movie';
 import Ticket from '../components/Ticket';
-import Payment from '../components/Payment';
+import Payment from '../screen/Payment';
+import PaymentMethod from '../screen/PaymentMethod';
 import Profile from '../authority/Profile';
 import UserDetail from '../authority/UserDetail';
 import ChatBot from '../chatbot/ChatBot'
@@ -28,6 +29,14 @@ const AppNavigator = () => {
         <Stack.Screen name="Profile" component={Profile} options={{headerShown:false}} />
         <Stack.Screen name="ChatBot" component={ChatBot} options={{headerShown:false}} />
         <Stack.Screen name="Payment" component={Payment} options={{headerShown:false}} />
+        <Stack.Screen
+          name="PaymentMethod"
+          children={(props) => (
+            <PaymentMethod {...props} onPaymentComplete={(isSelected) => {
+              console.log("Payment selected:", isSelected);
+            }} />
+          )}
+        />
         <Stack.Screen name="UserDetail" component={UserDetail} options={{headerShown:false}} />
         <Stack.Screen name="FilmDetail" component={FilmDetail} options={{ headerShown: false }} />
         <Stack.Screen name="Screen" component={Screen} options={{ headerShown: false }} />

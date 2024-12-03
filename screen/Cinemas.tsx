@@ -67,6 +67,7 @@ const Cinemas: React.FC<CinemasProps> = ({ filmId }) => {
   };
 
   const navigation = useNavigation(); // Hook for navigation
+  
   const handleContinue = () => {
       if (selectedCinemaId) {
         (navigation as any).navigate('Screen', { idfilm: filmId, idcinema: selectedCinemaId });
@@ -77,6 +78,15 @@ const Cinemas: React.FC<CinemasProps> = ({ filmId }) => {
   if (loading) {
     return <Text style={styles.loading}>Loading...</Text>;
   }
+  
+  if (cinemaData.length === 0) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.noCinemaText}>Theaters currently do not support this movie</Text>
+      </View>
+    );
+  }
+  
 
   return (
     <View style={styles.container}>
@@ -164,4 +174,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
   },
+  noCinemaText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    textAlign: 'center',
+    marginTop: 20,
+  },
+  
 });

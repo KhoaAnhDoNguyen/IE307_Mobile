@@ -12,6 +12,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { supabase } from "../lib/supabase";
 import Showtime from "./Showtime";
+import { Alert } from "react-native";
 
 // Define the route params type
 type RootStackParamList = {
@@ -48,6 +49,48 @@ const Screen = () => {
   const [selectedSeats, setSelectedSeats] = useState<string[]>([]);
   const [selectedShowtime, setSelectedShowtime] = useState<number | null>(null); // Save selected showtime
   const [price, setPrice] = useState<number>(0); // Default ticket price
+  const [reservedSeats, setReservedSeats] = useState<string[]>([]);
+  
+  useEffect(() => {
+    const fetchReservedSeats = async () => {
+      try {
+        // Lấy danh sách idorder từ bảng Order
+        const { data: orders, error: orderError } = await supabase
+          .from("Order")
+          .select("idorder")
+          .eq("idfilm", idfilm)
+          .eq("idcinema", idcinema);
+
+        if (orderError) {
+          console.error(orderError.message);
+          return;
+        }
+
+        if (orders?.length) {
+          const orderIds = orders.map((order) => order.idorder);
+
+          // Lấy danh sách ghế đã đặt từ bảng orderdetail
+          const { data: orderDetails, error: detailError } = await supabase
+            .from("orderdetail")
+            .select("seat")
+            .in("idorder", orderIds);
+
+          if (detailError) {
+            console.error(detailError.message);
+            return;
+          }
+
+          // Lưu danh sách ghế đã đặt
+          const reserved = orderDetails?.map((detail) => detail.seat) || [];
+          setReservedSeats(reserved);
+        }
+      } catch (err) {
+        console.error("Error fetching reserved seats:", err);
+      }
+    };
+
+    fetchReservedSeats();
+  }, [idfilm, idcinema]);
 
   useEffect(() => {
     const fetchSeats = async () => {
@@ -80,6 +123,11 @@ const Screen = () => {
   }, [idcinema]);
 
   const handleSeatPress = (seat: string) => {
+    if (reservedSeats.includes(seat)) {
+      Alert.alert("Seat Reserved", "This seat has already been reserved.");
+      return;
+    }
+
     setSelectedSeats((prevSelectedSeats) =>
       prevSelectedSeats.includes(seat)
         ? prevSelectedSeats.filter((s) => s !== seat)
@@ -92,6 +140,11 @@ const Screen = () => {
   // Function to format price with thousands separators (3.000, 15.000, etc.)
   const formatPrice = (price: number) => {
     return price.toLocaleString("de-DE"); // Use 'de-DE' for European format (3.000)
+  };
+
+  const handleBuyTicket = () => {
+      (navigation as any).navigate('Payment', { idfilm: idfilm, idcinema: idcinema,
+         idshowtime: selectedShowtime,  totalprice: totalPrice, seats: selectedSeats });
   };
 
   return (
@@ -124,15 +177,24 @@ const Screen = () => {
           ) : (
             <ScrollView contentContainerStyle={styles.seatGrid}>
               {seats.map((seat, index) => {
+                const isReserved = reservedSeats.includes(seat);
                 const isSelected = selectedSeats.includes(seat);
                 return (
                   <TouchableOpacity
                     key={index}
-                    style={[styles.seat, isSelected && styles.selectedSeat]}
+                    style={[
+                      styles.seat,
+                      isReserved && styles.reservedSeat,
+                      isSelected && styles.selectedSeat,
+                    ]}
                     onPress={() => handleSeatPress(seat)}
                   >
                     <Text
-                      style={[styles.seatText, isSelected && styles.selectedSeatText]}
+                      style={[
+                        styles.seatText,
+                        isReserved && styles.reservedSeatText,
+                        isSelected && styles.selectedSeatText,
+                      ]}
                     >
                       {seat}
                     </Text>
@@ -141,6 +203,21 @@ const Screen = () => {
               })}
             </ScrollView>
           )}
+          {/* Seat Status Legend */}
+        <View style={{ flexDirection: 'row', justifyContent: 'space-around', marginTop: 18 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <View style={{ width: 30, height: 30, backgroundColor: '#1C1C1C', borderRadius: 4, marginRight: 8 }} />
+            <Text style={{ fontSize: 12, color: 'white' }}>Available</Text>
+          </View>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <View style={{ width: 30, height: 30, backgroundColor: '#261D08', borderRadius: 4, marginRight: 8 }} />
+            <Text style={{ fontSize: 12, color: 'white' }}>Reserved</Text>
+          </View>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <View style={{ width: 30, height: 30, backgroundColor: '#FCC434', borderRadius: 4, marginRight: 8 }} />
+            <Text style={{ fontSize: 12, color: 'white' }}>Selected</Text>
+          </View>
+        </View>
         </View>
 
         {/* Showtime Component */}
@@ -164,7 +241,7 @@ const Screen = () => {
               {formatPrice(totalPrice)} VND
             </Text>
             </View>
-            <TouchableOpacity style={styles.buyButton}>
+            <TouchableOpacity style={styles.buyButton} onPress={handleBuyTicket} >
               <Text style={styles.buyButtonText}>Buy Ticket</Text>
             </TouchableOpacity>
           </View>
@@ -305,6 +382,14 @@ const styles = StyleSheet.create({
    justifyContent: "space-between", // Giữ khoảng cách đều giữa các phần
    alignItems: "stretch",
    marginTop: 20
-  }
+  },
+  reservedSeat: {
+    backgroundColor: "#261D08",
+    borderColor: 'gold',
+    borderWidth: 0.25
+  },
+  reservedSeatText: {
+    color: "#FCC434",
+  },
 });
 
