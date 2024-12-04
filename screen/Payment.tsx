@@ -52,6 +52,7 @@ const Payment = () => {
   const [film, setFilm] = useState<{ filmname: string; type: string; time: string; image: string } | null>(null);
   const [cinema, setCinema] = useState<string | null>(null);
   const [isPaymentMethodSelected, setIsPaymentMethodSelected] = useState<boolean>(false);
+  const [isProcessing, setIsProcessing] = useState<boolean>(false); // Thêm trạng thái xử lý
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -95,8 +96,18 @@ const Payment = () => {
   }, [idfilm, idcinema]);
 
   const createOrder = async () => {
+    if (isProcessing) return; // Nếu đang xử lý, không cho nhấn thêm
+    setIsProcessing(true); // Đánh dấu bắt đầu xử lý
+
     if (!user) {
       Alert.alert("Error", "User information is not available.");
+      setIsProcessing(false);
+      return;
+    }
+
+    if (!film) {
+      Alert.alert("Error", "Film information is not available.");
+      setIsProcessing(false);
       return;
     }
   
@@ -123,12 +134,27 @@ const Payment = () => {
       );
   
       await Promise.all(seatPromises);
-  
+
+      await fetch('http://10.0.2.2:3000/send-ticket-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: user.email,
+          filmName: film.filmname,
+          seats,
+          cinema,
+          totalPrice: totalprice,
+          time: film.time,
+        }),
+      });
+
       Alert.alert("Success", "Ticket purchased successfully!");
       navigation.navigate('Ticket')
     } catch (error) {
       console.error("Error creating order:", error);
       Alert.alert("Error", "Something went wrong, please try again.");
+    } finally {
+      setIsProcessing(false); // Đánh dấu kết thúc xử lý
     }
   };
   
@@ -199,8 +225,14 @@ const Payment = () => {
       <PaymentMethod onPaymentComplete={handlePaymentComplete} />
 
       {isPaymentMethodSelected && (
-        <TouchableOpacity style={styles.paymentButton} onPress={createOrder}>
-          <Text style={styles.paymentButtonText}>Payment</Text>
+        <TouchableOpacity
+          style={styles.paymentButton}
+          onPress={createOrder}
+          disabled={isProcessing} // Vô hiệu hóa nút khi đang xử lý
+        >
+          <Text style={styles.paymentButtonText}>
+            {isProcessing ? 'Processing...' : 'Payment'}
+          </Text>
         </TouchableOpacity>
       )}
     </View>
