@@ -96,8 +96,8 @@ const Payment = () => {
   }, [idfilm, idcinema]);
 
   const createOrder = async () => {
-    if (isProcessing) return; // Nếu đang xử lý, không cho nhấn thêm
-    setIsProcessing(true); // Đánh dấu bắt đầu xử lý
+    if (isProcessing) return; 
+    setIsProcessing(true); 
 
     if (!user) {
       Alert.alert("Error", "User information is not available.");

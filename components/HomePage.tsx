@@ -6,6 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '../lib/supabase';
 import Footer from './Footer';
 import { StackNavigationProp } from '@react-navigation/stack';
+import Notification from './Notification';
 
 export interface Film {
   idfilm: number;
@@ -51,7 +52,12 @@ const HomePage: React.FC = () => {
   const [comingSoonFilms, setComingSoonFilms] = useState<Film[]>([]);
   const flatListRef = useRef<FlatList>(null);
   const navigations = useNavigation<MovieScreenNavigationProp>();
+  const [isNotificationVisible, setNotificationVisible] = useState(false);
 
+  const toggleNotification = () => {
+    setNotificationVisible((prev) => !prev);
+  };
+  
   const handleMoviePress = (movie: Film) => {
     navigations.navigate('FilmDetail', { id: movie.idfilm });
   };
@@ -194,8 +200,10 @@ const HomePage: React.FC = () => {
             Hi, {user?.name} <Text style={styles.wave}>👋</Text>
           </Text>
           <View style={styles.notificationIcon}>
-            <Ionicons name="notifications-outline" size={24} color="white" />
-            <View style={styles.greenDot} />
+            <TouchableOpacity onPress={toggleNotification}>
+              <Ionicons name="notifications-outline" size={24} color="white" />
+              <View style={styles.greenDot} />
+            </TouchableOpacity>
           </View>
         </View>
 
@@ -289,7 +297,12 @@ const HomePage: React.FC = () => {
       
       </ScrollView>
       <Footer />
+      <Notification
+        visible={isNotificationVisible}
+        onClose={toggleNotification}
+      />
     </View>
+    
   );
 };
 

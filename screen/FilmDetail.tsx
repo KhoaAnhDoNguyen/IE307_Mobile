@@ -88,9 +88,27 @@ const FilmDetail = () => {
       }
     };
 
+    const fetchUserRating = async () => {
+      if (!user) return;
+  
+      const { data, error } = await supabase
+        .from('user_film')
+        .select('star')
+        .eq('idfilm', id)
+        .eq('iduser', user.id)
+        .single();
+  
+      if (error) {
+        console.error('Error fetching user rating:', error);
+      } else {
+        setUserRating(data?.star || null);
+      }
+    };
+
     fetchMovieDetails();
     fetchAverageRating();
-  }, [id]);
+    fetchUserRating(); // Gọi để tải số sao người dùng đã đánh giá
+  }, [id, user]);
 
   const fetchAverageRating = async () => {
     const { data, error } = await supabase
@@ -169,13 +187,18 @@ const FilmDetail = () => {
             <Text style={styles.reviewText}>{averageRating ? averageRating.toFixed(1) : 'N/A'}</Text>
           </View>
           <View style={styles.starsAndTrailerContainer}>
-            <View style={styles.starsContainer}>
-              {[1, 2, 3, 4, 5].map((star) => (
-                <TouchableOpacity key={star} onPress={() => handleStarPress(star)}>
-                  <FontAwesome name="star" size={24} color={userRating && userRating >= star ? "gold" : "gray"} style={styles.starIcon} />
-                </TouchableOpacity>
-              ))}
-            </View>
+              <View style={styles.starsContainer}>
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <TouchableOpacity key={star} onPress={() => handleStarPress(star)}>
+                    <FontAwesome 
+                      name="star" 
+                      size={24} 
+                      color={userRating && userRating >= star ? "gold" : "gray"} 
+                      style={styles.starIcon} 
+                    />
+                  </TouchableOpacity>
+                ))}
+              </View>
             <TouchableOpacity style={styles.trailerButton} onPress={() => setIsTrailerVisible(true)}>
               <FontAwesome name="play" size={16} color="#FFFFFF" />
               <Text style={styles.trailerText}>Watch Trailer</Text>
