@@ -7,6 +7,7 @@ import SignUp from '../authority/SignUp';
 import HomePage from '../components/HomePage';
 import Movie from '../components/Movie';
 import Ticket from '../components/Ticket';
+import TicketDetail from '../screen/TicketDetail';
 import Payment from '../screen/Payment';
 import PaymentMethod from '../screen/PaymentMethod';
 import Profile from '../authority/Profile';
@@ -26,6 +27,7 @@ const AppNavigator = () => {
         <Stack.Screen name="HomePage" component={HomePage} options={{ headerShown: false }} />
         <Stack.Screen name="Movie" component={Movie} options={{ headerShown: false }} />
         <Stack.Screen name="Ticket" component={Ticket} options={{ headerShown: false }} />
+        <Stack.Screen name="TicketDetail" component={TicketDetail} options={{ headerShown: false }} />
         <Stack.Screen name="Profile" component={Profile} options={{headerShown:false}} />
         <Stack.Screen name="ChatBot" component={ChatBot} options={{headerShown:false}} />
         <Stack.Screen name="Payment" component={Payment} options={{headerShown:false}} />

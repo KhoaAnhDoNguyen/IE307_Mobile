@@ -17,6 +17,12 @@ type RootStackParamList = {
     seats: string[];
   };
   Ticket: undefined;
+  TicketDetail: {
+    film: { filmname: string; type: string; time: string; image: string };
+    showtime: { dateshow: string; monthshow: string; yearshow: string; timeshow: string };
+    cinema: { namecinema: string; address: string; seats: string };
+    order: { idorder: number; total_price: number };
+  };
 };
 
 interface Order {
@@ -47,53 +53,60 @@ const Payment = () => {
   const { idfilm, idshowtime, idcinema, totalprice, seats } = route.params;
   const navigation = useNavigation<NavigationProps>();
 
-
   const [user, setUser] = useState<any>(null);
   const [film, setFilm] = useState<{ filmname: string; type: string; time: string; image: string } | null>(null);
   const [cinema, setCinema] = useState<string | null>(null);
   const [isPaymentMethodSelected, setIsPaymentMethodSelected] = useState<boolean>(false);
   const [isProcessing, setIsProcessing] = useState<boolean>(false); // Thêm trạng thái xử lý
 
+  const [showtime, setShowtime] = useState<any>(null);
+  const [cinemaAddress, setCinemaAddress] = useState<string | null>(null);
+
   useEffect(() => {
-    const fetchUser = async () => {
-      const storedUser = await AsyncStorage.getItem('user');
-      if (storedUser) {
-        setUser(JSON.parse(storedUser));
+    const fetchData = async () => {
+      try {
+        // Fetch user
+        const storedUser = await AsyncStorage.getItem('user');
+        if (storedUser) {
+          setUser(JSON.parse(storedUser));
+        }
+
+        // Fetch film
+        const { data: filmData, error: filmError } = await supabase
+          .from('films')
+          .select('filmname, type, time, image')
+          .eq('idfilm', idfilm)
+          .single();
+        if (filmData) setFilm(filmData);
+        if (filmError) console.error('Error fetching film:', filmError);
+
+        // Fetch cinema
+        const { data: cinemaData, error: cinemaError } = await supabase
+          .from('cinemas')
+          .select('namecinema, address')
+          .eq('idcinema', idcinema)
+          .single();
+        if (cinemaData) {
+          setCinema(cinemaData.namecinema);
+          setCinemaAddress(cinemaData.address);
+        }
+        if (cinemaError) console.error('Error fetching cinema:', cinemaError);
+
+        // Fetch showtime
+        const { data: showtimeData, error: showtimeError } = await supabase
+          .from('showtimes')
+          .select('dateshow, monthshow, yearshow, timeshow')
+          .eq('idshowtime', idshowtime)
+          .single();
+        if (showtimeData) setShowtime(showtimeData);
+        if (showtimeError) console.error('Error fetching showtime:', showtimeError);
+      } catch (error) {
+        console.error('Error fetching data:', error);
       }
     };
-    
-    const fetchFilm = async () => {
-      const { data, error } = await supabase
-        .from('films')
-        .select('filmname, type, time, image')
-        .eq('idfilm', idfilm)
-        .single();
 
-      if (data) {
-        setFilm(data);
-      } else if (error) {
-        console.error('Error fetching film:', error);
-      }
-    };
-
-    const fetchCinema = async () => {
-      const { data, error } = await supabase
-        .from('cinemas')
-        .select('namecinema')
-        .eq('idcinema', idcinema)
-        .single();
-
-      if (data) {
-        setCinema(data.namecinema);
-      } else if (error) {
-        console.error('Error fetching cinema:', error);
-      }
-    };
-
-    fetchUser();
-    fetchFilm();
-    fetchCinema();
-  }, [idfilm, idcinema]);
+    fetchData();
+  }, [idfilm, idcinema, idshowtime]);
 
   const createOrder = async () => {
     if (isProcessing) return; 
@@ -149,7 +162,18 @@ const Payment = () => {
       });
 
       Alert.alert("Success", "Ticket purchased successfully!");
-      navigation.navigate('Ticket')
+      if (!cinema) {
+        Alert.alert("Error", "Cinema information is missing.");
+        return;
+      }
+      
+      navigation.navigate('TicketDetail', {
+        film: { filmname: film?.filmname, type: film?.type, time: film?.time, image: film?.image },
+        showtime: showtime ?? { dateshow: 'N/A', monthshow: 'N/A', yearshow: 'N/A', timeshow: 'N/A' },
+        cinema: { namecinema: cinema ?? 'N/A', address: cinemaAddress ?? 'N/A', seats: seats.join(', ') },
+        order: { idorder: idOrder, total_price: totalprice },
+      });
+        
     } catch (error) {
       console.error("Error creating order:", error);
       Alert.alert("Error", "Something went wrong, please try again.");
@@ -181,6 +205,7 @@ const Payment = () => {
     const imagePath = uri.startsWith('/') ? uri.slice(1) : uri;
     return imageMapping[imagePath] || require('../assets/Films/Film1.png');
   };
+
 
   return (
     <View style={styles.container}>
@@ -228,7 +253,7 @@ const Payment = () => {
         <TouchableOpacity
           style={styles.paymentButton}
           onPress={createOrder}
-          disabled={isProcessing} // Vô hiệu hóa nút khi đang xử lý
+          disabled={isProcessing} 
         >
           <Text style={styles.paymentButtonText}>
             {isProcessing ? 'Processing...' : 'Payment'}

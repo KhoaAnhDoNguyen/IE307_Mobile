@@ -1,9 +1,41 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, Text, View, Image, ScrollView } from 'react-native';
+import { StyleSheet, Text, View, Image, ScrollView, TouchableOpacity } from 'react-native';
 import Footer from '../components/Footer';
 import { supabase } from '../lib/supabase';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useNavigation } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
+
+// Define the type for the navigation params
+type TicketDetailParams = {
+  film: {
+    filmname: string;
+    type: string;
+    time: string;
+    image: string;
+  };
+  showtime: {
+    dateshow: string;
+    monthshow: string;
+    yearshow: string;
+    timeshow: string;
+  };
+  cinema: {
+    namecinema: string;
+    address: string;
+    seats: string;  // seats as a string of joined seats
+  };
+  order: {
+    idorder: number;
+    total_price: number;
+  };
+};
+
+// Define the navigation prop type
+type NavigationProp = StackNavigationProp<{
+  TicketDetail: TicketDetailParams;
+}>;
 
 const imageMapping: { [key: string]: any } = {
   'assets/Films/Film1.png': require('../assets/Films/Film1.png'),
@@ -19,6 +51,7 @@ const imageMapping: { [key: string]: any } = {
 const Ticket = () => {
   const [user, setUser] = useState<any>(null);
   const [tickets, setTickets] = useState<any[]>([]);
+  const navigation = useNavigation<NavigationProp>();
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -38,10 +71,15 @@ const Ticket = () => {
       const { data, error } = await supabase
         .from('Order')
         .select(`
+          idorder,
           idfilm,
           idcinema,
+          idshowtime,
           films(filmname, type, time, image),
-          cinemas(namecinema)
+          cinemas(namecinema, address),
+          showtimes(dateshow, monthshow, yearshow, timeshow),
+          totalprice,
+          orderdetail(seat)  // Join with orderdetail to get seats
         `)
         .eq('id', user.id);
 
@@ -61,6 +99,32 @@ const Ticket = () => {
     return imageMapping[imagePath] || require('../assets/Films/Film1.png');
   };
 
+  const handleTicketPress = (ticket: any) => {
+    navigation.navigate('TicketDetail', {
+      film: {
+        filmname: ticket.films?.filmname,
+        type: ticket.films?.type,
+        time: ticket.films?.time,
+        image: ticket.films?.image,
+      },
+      showtime: ticket.showtimes ?? { 
+        dateshow: 'N/A', 
+        monthshow: 'N/A', 
+        yearshow: 'N/A', 
+        timeshow: 'N/A' 
+      },
+      cinema: {
+        namecinema: ticket.cinemas?.namecinema ?? 'N/A',
+        address: ticket.cinemas?.address ?? 'N/A',
+        seats: ticket.orderdetail.map((detail: any) => detail.seat).join(', ')  // Join seats into a string
+      },
+      order: {
+        idorder: ticket.idorder,
+        total_price: ticket.totalprice
+      },
+    });
+  };
+
   return (
     <View style={styles.container}>
       <Text style={styles.header}>My Ticket</Text>
@@ -69,7 +133,7 @@ const Ticket = () => {
           <Text style={styles.noTicketsText}>There are no tickets available</Text>
         ) : (
           tickets.map((ticket, index) => (
-            <View key={index} style={styles.ticketItem}>
+            <TouchableOpacity key={index} style={styles.ticketItem} onPress={() => handleTicketPress(ticket)}>
               <Image
                 source={getImageSource(ticket.films.image)}
                 style={styles.ticketImage}
@@ -89,7 +153,7 @@ const Ticket = () => {
                   <Text style={styles.text}>{ticket.films.time}</Text>
                 </View>
               </View>
-            </View>
+            </TouchableOpacity>
           ))
         )}
       </ScrollView>
@@ -106,7 +170,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#000',
-    paddingBottom: 80, // Add padding to avoid footer overlapping content
+    paddingBottom: 80,
   },
   header: {
     textAlign: 'center',
