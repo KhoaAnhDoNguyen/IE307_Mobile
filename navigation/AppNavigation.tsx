@@ -14,7 +14,9 @@ import Profile from '../authority/Profile';
 import UserDetail from '../authority/UserDetail';
 import ChatBot from '../chatbot/ChatBot'
 import FilmDetail from '../screen/FilmDetail';
-import Screen from '../screen/Screen'
+import Screen from '../screen/Screen';
+import PaymentHistory from '../screen/PaymentHistory';
+
 const Stack = createStackNavigator();
 
 const AppNavigator = () => {
@@ -31,6 +33,7 @@ const AppNavigator = () => {
         <Stack.Screen name="Profile" component={Profile} options={{headerShown:false}} />
         <Stack.Screen name="ChatBot" component={ChatBot} options={{headerShown:false}} />
         <Stack.Screen name="Payment" component={Payment} options={{headerShown:false}} />
+        <Stack.Screen name="PaymentHistory" component={PaymentHistory} options={{headerShown:false}} />
         <Stack.Screen
           name="PaymentMethod"
           children={(props) => (

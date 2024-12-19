@@ -88,7 +88,7 @@ const Ticket = () => {
         return;
       }
 
-      setTickets(data || []);
+      setTickets(data ? data.reverse() : []);
     };
 
     fetchTickets();

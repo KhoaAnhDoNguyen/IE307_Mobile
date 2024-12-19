@@ -32,6 +32,7 @@ interface Order {
   idshowtime: number;
   idcinema: number;
   totalprice: number;
+  paymentdate: string
 }
 
 const imageMapping: { [key: string]: any } = {
@@ -124,10 +125,13 @@ const Payment = () => {
       return;
     }
   
+    // Lấy ngày thanh toán hiện tại
+    const paymentDate = new Date().toISOString(); // Định dạng ISO cho ngày
+
     try {
       const { data: orderData, error: orderError } = await supabase
         .from('Order')
-        .insert([{ id: user.id, idfilm, idshowtime, idcinema, totalprice }])
+        .insert([{ id: user.id, idfilm, idshowtime, idcinema, totalprice, paymentdate: paymentDate }])
         .select('*') // Ensure that Supabase returns the inserted row
         .single();
   

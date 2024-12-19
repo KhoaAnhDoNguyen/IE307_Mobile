@@ -23,13 +23,13 @@ const PaymentMethod: React.FC<PaymentMethodProps> = ({ onPaymentComplete }) => {
     const isSelected = selectedMethod === methodId;
     setSelectedMethod(isSelected ? null : methodId);
     if (!isSelected) {
-      setTimeLeft(3 * 60); // Set timer for 5 minutes
+      setTimeLeft(5 * 60); // Set timer for 5 minutes
       onPaymentComplete(true); // Notify Payment component of selection
     } else {
       setTimeLeft(null); // Reset timer if method is deselected
       onPaymentComplete(false); // Notify Payment component about deselection
     }
-  };
+  }
 
   useEffect(() => {
     let timer: NodeJS.Timeout;

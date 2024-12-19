@@ -11,7 +11,7 @@ interface RootStackParamList {
     StartScreen: undefined;
     UserDetail: undefined;
     Ticket: undefined;
-    Payment: undefined;
+    PaymentHistory: undefined;
 }
 
 const Profile: React.FC = () => {
@@ -123,9 +123,9 @@ const Profile: React.FC = () => {
                 </TouchableOpacity>
                 <View style={styles.divider} />
 
-                <TouchableOpacity style={styles.option} onPress={() => navigation.navigate('Payment')}>
+                <TouchableOpacity style={styles.option} onPress={() => navigation.navigate('PaymentHistory')}>
                     <Icon name="shopping-cart" size={28} color="#fff" />
-                    <Text style={styles.optionText}>Payment history</Text>
+                    <Text style={styles.optionText}>Payment chart</Text>
                     <Icon name="chevron-right" size={24} color="#fff" style={styles.arrow} />
                 </TouchableOpacity>
                 <View style={styles.divider} />
